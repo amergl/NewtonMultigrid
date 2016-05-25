@@ -1,0 +1,12 @@
+.DS_Store
+*.swp
+*.py~
+*.pyc
+*.aux
+*.log
+*.synctex.gz
+README.md
+notebooks/
+cover/
+LICENSE
+CONTRIBUTING.md
