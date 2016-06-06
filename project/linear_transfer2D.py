@@ -45,12 +45,37 @@ class LinearTransfer2D(TransferBase):
                 `ndofs_fine` x `ndofs_coarse`
         """
 
+        n_coarse = math.sqrt(ndofs_coarse)
+        n_fine = math.sqrt(ndofs_fine)
+
         # This is a workaround, since I am not aware of a suitable way to do
         # this directly with sparse matrices.
         P = np.zeros((ndofs_fine, ndofs_coarse))
-        np.fill_diagonal(P[1::2, :], 1)
-        np.fill_diagonal(P[0::2, :], 1.0/2.0)
-        np.fill_diagonal(P[2::2, :], 1.0/2.0)
+
+        for line_block in range(n_fine):
+            if (line_block % 2 == 0):
+                np.fill_diagonal(P[line_block * n_fine + 1:line_block * n_fine + 5:2,
+                                 line_block / 2 * n_coarse:], 1.0 / 2.0)
+                np.fill_diagonal(P[line_block * n_fine + 0:line_block * n_fine + 5:2,
+                                 line_block / 2 * n_coarse:], 1.0 / 4.0)
+                np.fill_diagonal(P[line_block * n_fine + 2:line_block * n_fine + 5:2,
+                                 line_block / 2 * n_coarse:], 1.0 / 4.0)
+
+            else:
+                np.fill_diagonal(P[line_block * n_fine + 1:line_block * n_fine + 5:2,
+                                 (line_block / 2 - 1) * n_coarse:], 1.0 / 4.0)
+                np.fill_diagonal(P[line_block * n_fine + 0:line_block * n_fine + 5:2,
+                                 (line_block / 2 - 1) * n_coarse:], 1.0 / 8.0)
+                np.fill_diagonal(P[line_block * n_fine + 2:line_block * n_fine + 5:2,
+                                 (line_block / 2 - 1) * n_coarse:], 1.0 / 8.0)
+
+                np.fill_diagonal(P[line_block * n_fine + 1:line_block * n_fine + 5:2,
+                                 (line_block / 2) * n_coarse:], 1.0 / 4.0)
+                np.fill_diagonal(P[line_block * n_fine + 0:line_block * n_fine + 5:2,
+                                 (line_block / 2) * n_coarse:], 1.0 / 8.0)
+                np.fill_diagonal(P[line_block * n_fine + 2:line_block * n_fine + 5:2,
+                                 (line_block / 2) * n_coarse:], 1.0 / 8.0)
+
         return sp.csc_matrix(P)
 
     def __get_restriction_matrix(self):
