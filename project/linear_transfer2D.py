@@ -85,8 +85,14 @@ class LinearTransfer2D(TransferBase):
            scipy.sparse.csc_matrix: sparse restriction matrix of size
                 `ndofs_coarse` x `ndofs_fine`
         """
-        assert hasattr(self, 'I_2htoh')
-        return 0.5 * sp.csc_matrix(self.I_2htoh.T)
+        data = [ 1.0/16, 1.0/8, 1.0/16,
+                 1.0/8,  1.0/4, 1.0/8,
+                 1.0/16, 1.0/8, 1.0/16 ]
+        diags = [ -self.ndofs_fine - 1, -self.ndofs_fine, -self.ndofs_fine + 1,
+                 -1, 0, 1,
+                 self.ndofs_fine - 1, self.ndofs_fine, self.ndofs_fine +1 ]
+        
+        return sp.spdiags( data, diags, self.ndofs_coarse, self.ndofs_fine, type='csc' )
 
     def restrict(self, u_coarse):
         """Routine to apply restriction
