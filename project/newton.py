@@ -1,10 +1,10 @@
 import scipy.sparse.linalg as sLA
 import numpy as np
 
-from pymg.multigrid_base import MultigridBase
+#from pymg.multigrid_base import MultigridBase
+from project.jacobi import generalJacobi,specificJacobi
 
-
-class Newton(MultigridBase):
+class Newton():#MultigridBase):
     """Implementation of a newton multigrid solver
     """
 
@@ -12,29 +12,19 @@ class Newton(MultigridBase):
         """Initialization routine
         """
         assert np.log2(ndofs+1) >= nlevels
-        super(Newton, self).__init__(ndofs, nlevels)
+        #super(Newton, self).__init__(ndofs, nlevels)
+        self.ndofs=ndofs
 
-    def jacobi(self, g, x, delta=1e-4):
-        x = array(x, dtype=float64)
-        fx = g(x)
-        f = g
-        m = 0
-        if type(fx) == ndarray:
-            m = fx.shape[0]
-        else:
-            m = 1
 
-        if m == 1:
-            f = lambda x: array(g(x))
-            n = x.shape[0]
-            J = zeros((m, n))
-
-        for i in range(m):
-            for j in range(n):
-                xtilde = copy(x)
-                xtilde[j] += delta
-                J[i, j] += f(xtilde)[i]
-                xtilde[j] -= 2*delta
-                J[i, j] -= f(xtilde)[i]
-                J[i, j] /= 2.0*delta
-        return J
+    def do_newton_cycle(self, prob, nu0, nu1, newton_it=10):
+        #attach prolongation operator
+        #attach restriction operator
+        #attach smoother
+        x=np.copy(prob.rhs)
+        F=lambda z: np.array(prob.rhs) - prob.A(z)
+        while newton_it > 0:
+            J=generalJacobi(F,x)
+            x-= np.dot(np.linalg.inv(J),F(x))
+            newton_it -=1
+        return x
+        
