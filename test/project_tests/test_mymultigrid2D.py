@@ -9,7 +9,7 @@ from project.linear_transfer2D import LinearTransfer2D
 from project.weighted_jacobi import WeightedJacobi
 
 
-class test_mymultigrid(unittest.TestCase):
+class test_mymultigrid2D(unittest.TestCase):
 
     def setUp(self):
         ndofs = 31

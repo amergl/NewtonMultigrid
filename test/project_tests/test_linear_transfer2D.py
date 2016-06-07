@@ -74,7 +74,6 @@ def test_restrict_has_expected_order_of_accuracy():
         order.append(np.log(err_list[i - 1] / err_list[i]) / np.log(ndofs[i] / ndofs[i - 1]))
 
     order = np.array(order)
-    print order
 
     assert (order > expected_order * 0.9).all() and (order < expected_order * 1.1).all(), \
         'Order of accuracy of the restriction is not ' + str(order)
