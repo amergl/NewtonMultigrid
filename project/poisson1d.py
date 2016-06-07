@@ -54,7 +54,7 @@ class Poisson1D(ProblemBase):
         Returns:
             numpy.ndarray: the right-hand side vector of size :attr:`ndofs`
         """
-        return np.zeros(ndofs)
+        return np.ones(ndofs)
 
     @property
     def u_exact(self):
@@ -63,4 +63,7 @@ class Poisson1D(ProblemBase):
         Returns:
             numpy.ndarray: exact solution array of size :attr:`ndofs`
         """
-        return np.zeros(self.ndofs)
+
+        t=np.linspace(0,1,self.ndofs+2)[1:-1]
+        u=lambda x: np.array([-0.5*x[i]*x[i] + 0.5*x[i] for i in range(x.shape[0])],dtype=np.float64)
+        return u(t)
