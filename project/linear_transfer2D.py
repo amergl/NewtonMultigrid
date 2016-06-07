@@ -45,8 +45,8 @@ class LinearTransfer2D(TransferBase):
                 `ndofs_fine` x `ndofs_coarse`
         """
 
-        n_coarse = math.sqrt(ndofs_coarse)
-        n_fine = math.sqrt(ndofs_fine)
+        n_coarse = int(np.sqrt(ndofs_coarse))
+        n_fine = int(np.sqrt(ndofs_fine))
 
         # This is a workaround, since I am not aware of a suitable way to do
         # this directly with sparse matrices.
@@ -85,14 +85,18 @@ class LinearTransfer2D(TransferBase):
            scipy.sparse.csc_matrix: sparse restriction matrix of size
                 `ndofs_coarse` x `ndofs_fine`
         """
-        data = [ 1.0/16, 1.0/8, 1.0/16,
-                 1.0/8,  1.0/4, 1.0/8,
-                 1.0/16, 1.0/8, 1.0/16 ]
+        data = [ [1.0/16]*self.ndofs_fine, [1.0/8]*self.ndofs_fine, [1.0/16]*self.ndofs_fine,
+                 [1.0/8] *self.ndofs_fine, [1.0/4]*self.ndofs_fine, [1.0/8] *self.ndofs_fine,
+                 [1.0/16]*self.ndofs_fine, [1.0/8]*self.ndofs_fine, [1.0/16]*self.ndofs_fine ]
         diags = [ -self.ndofs_fine - 1, -self.ndofs_fine, -self.ndofs_fine + 1,
                  -1, 0, 1,
                  self.ndofs_fine - 1, self.ndofs_fine, self.ndofs_fine +1 ]
         
-        return sp.spdiags( data, diags, self.ndofs_coarse, self.ndofs_fine, type='csc' )
+        # matrix nxn
+        big_matrix = sp.spdiags( data, diags, self.ndofs_fine-1, self.ndofs_fine, format='csc' )
+        # matrix containing only every second row
+	#print big_matrix.shape, big_matrix[::2,:].shape
+        return big_matrix[::2,:]
 
     def restrict(self, u_coarse):
         """Routine to apply restriction
@@ -102,6 +106,7 @@ class LinearTransfer2D(TransferBase):
         Returns:
             numpy.ndarray: vector on fine grid, size `ndofs_fine`
         """
+        print self.I_hto2h.shape, u_coarse.shape
         return self.I_hto2h.dot(u_coarse)
 
     def prolong(self, u_fine):
