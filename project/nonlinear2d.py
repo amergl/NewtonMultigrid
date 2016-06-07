@@ -2,7 +2,7 @@
 import numpy as np
 import scipy.sparse as sp
 
-class Nonlinear1D():
+class Nonlinear2D():
     def __init__(self, ndofs, gamma, *args, **kwargs):
         self.gamma = gamma
         self.ndofs = ndofs

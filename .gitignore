@@ -10,3 +10,5 @@ notebooks/
 cover/
 LICENSE
 CONTRIBUTING.md
+.idea/
+.python-version

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 
-from project.nonlinear1d import Nonlinear1D
+from project.nonlinear2d import Nonlinear2D
 
 
 def test_exact_solution():
@@ -12,7 +12,7 @@ def test_exact_solution():
 
     for gamma in list_gamma:
         for ndofs in list_n:
-            prob = Nonlinear1D(ndofs,gamma)
+            prob = Nonlinear2D(ndofs, gamma)
 
             print prob.rhs
             print prob.u_exact
