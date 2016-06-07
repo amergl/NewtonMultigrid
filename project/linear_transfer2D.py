@@ -25,7 +25,7 @@ class LinearTransfer2D(TransferBase):
         assert isinstance(ndofs_fine, int), type(ndofs_fine)
         assert isinstance(ndofs_coarse, int)
         assert (ndofs_fine + 1) % 2 == 0
-        assert math.sqrt(ndofs_coarse) == (math.sqrt(ndofs_fine) + 1) / 2 - 1
+        #assert math.sqrt(ndofs_coarse) == (math.sqrt(ndofs_fine) + 1) / 2 - 1
 
         super(LinearTransfer2D, self).__init__(ndofs_fine, ndofs_coarse, *args, **kwargs)
 
@@ -89,14 +89,16 @@ class LinearTransfer2D(TransferBase):
         data = [ [1.0/16]*self.ndofs_fine, [1.0/8]*self.ndofs_fine, [1.0/16]*self.ndofs_fine,
                  [1.0/8] *self.ndofs_fine, [1.0/4]*self.ndofs_fine, [1.0/8] *self.ndofs_fine,
                  [1.0/16]*self.ndofs_fine, [1.0/8]*self.ndofs_fine, [1.0/16]*self.ndofs_fine ]
-        diags = [ -self.ndofs_fine - 1, -self.ndofs_fine, -self.ndofs_fine + 1,
+        diags = [ -int(math.sqrt(self.ndofs_fine)) - 1, -int(math.sqrt(self.ndofs_fine)), -int(math.sqrt(self.ndofs_fine)) + 1,
                  -1, 0, 1,
-                 self.ndofs_fine - 1, self.ndofs_fine, self.ndofs_fine +1 ]
-        
+                 int(math.sqrt(self.ndofs_fine)) - 1, int(math.sqrt(self.ndofs_fine)), int(math.sqrt(self.ndofs_fine)) +1 ]
+        print diags 
         # matrix nxn
-        big_matrix = sp.spdiags( data, diags, self.ndofs_fine-1, self.ndofs_fine, format='csc' )
+        big_matrix = sp.spdiags( data, diags, self.ndofs_fine-2, self.ndofs_fine, format='csc' )
         # matrix containing only every second row
-	#print big_matrix.shape, big_matrix[::2,:].shape
+	#print big_matrix[::2, :].toarray()
+	print 
+	print
         return big_matrix[::2,:]
 
     def restrict(self, u_coarse):
@@ -107,7 +109,6 @@ class LinearTransfer2D(TransferBase):
         Returns:
             numpy.ndarray: vector on fine grid, size `ndofs_fine`
         """
-        print self.I_hto2h.shape, u_coarse.shape
         return self.I_hto2h.dot(u_coarse)
 
     def prolong(self, u_fine):
@@ -119,3 +120,9 @@ class LinearTransfer2D(TransferBase):
             numpy.ndarray: vector on coarse grid, size `ndofs_coarse`
         """
         return self.I_2htoh.dot(u_fine)
+
+if __name__ == "__main__":
+    ndofs_fine = 31
+    ndofs_coarse = 15
+    lintans2D = LinearTransfer2D(ndofs_fine, ndofs_coarse)
+
