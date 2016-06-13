@@ -10,9 +10,7 @@ from project.nontrivial2d import Nontrivial2D
 from time import time
 
 def test_newton(problem,ndofs=4,eps=1e-8):
-    if problem is "Poisson":
-        prob = Poisson1D(ndofs)
-    elif problem is "PseudoNonLinear":
+    if problem is "PseudoNonLinear":
         prob = Nonlinear2D(ndofs,0)
     elif problem is "NonLinear":
         prob = Nonlinear2D(ndofs,1e3)
@@ -28,12 +26,24 @@ def test_newton(problem,ndofs=4,eps=1e-8):
 
     fstring="%-15s %-15s %e %.4f"
     
+    #if False:
+    nu0=1
+    nu1=1
+    nu2=1
+    begin=time()
+    x=newton.do_newton_fmg_cycle(prob, prob.rhs, level, nu0, nu1, nu2)
+    duration=time()-begin
+    error=linalg.norm(x-prob.u_exact)
+    print fstring%(problem,"Newton-FMG",error,duration)
+    assert error < eps
+    quit()
+    
     begin=time()
     x=newton.do_newton_lu_cycle(prob)
     duration=time()-begin
     error=linalg.norm(x-prob.u_exact)
     print fstring%(problem,"Newton",error,duration)
-    assert error < eps;
+    assert error < eps
 
     if False:
         nu1=1
@@ -44,23 +54,17 @@ def test_newton(problem,ndofs=4,eps=1e-8):
         duration=time()-begin
         error=linalg.norm(x-prob.u_exact)
         print fstring%(problem,"Newton-MG",error,duration)
-        assert error < eps;
+        assert error < eps
 
     
-    if False:
-        begin=time()
-        x=newton.do_newton_fmg_cycle(prob)
-        duration=time()-begin
-        error=linalg.norm(x-prob.u_exact)
-        print fstring%(problem,"Newton-FMG",error,duration)
-        assert error < eps;
+
 
 if __name__ == "__main__":
 
     print "%-15s %-15s %-12s %-15s"%("Problem","Method","||e||","Time")
     print "---------------------------------------------------"
-    ndofs=31
-    #test_newton("Poisson",ndofs)
+    k=3
+    ndofs=2**k -1
     test_newton("PseudoNonLinear", ndofs)
     test_newton("NonLinear", ndofs)
     test_newton("NonTrivial", ndofs)
