@@ -2,7 +2,7 @@
 import numpy as np
 import scipy.sparse as sp
 
-class Nonlinear2D():
+class Nontrivial2D():
     def __init__(self, ndofs, gamma, *args, **kwargs):
         self.gamma = gamma
         self.ndofs = ndofs
@@ -36,7 +36,10 @@ class Nonlinear2D():
         b=np.zeros(size)
         xn=np.linspace(0,1,self.ndofs+2)[1:-1]
         yn=np.linspace(0,1,self.ndofs+2)[1:-1]
-        f=lambda x,y: 2*((x-x*x)+(y-y*y)) + self.gamma*(x-x*x)*(y-y*y)*np.exp((x-x*x)*(y-y*y))
+        f=lambda x,y: ((
+                9*np.pi**2+ self.gamma*np.exp((x**2-x**3)*np.sin(3*np.pi*y))
+            )
+                       *(x**2-x**3)+6*x-2)*np.sin(3*np.pi*y)
         for j in range(self.ndofs):
             for i in range(self.ndofs):
                 b[j*self.ndofs+i]=f(xn[i],yn[j])
@@ -47,7 +50,7 @@ class Nonlinear2D():
         u=np.zeros(size)
         xn=np.linspace(0,1,self.ndofs+2)[1:-1]
         yn=np.linspace(0,1,self.ndofs+2)[1:-1]
-        f=lambda x,y: (x-x*x)*(y-y*y)
+        f=lambda x,y: (x**2-x**3)*np.sin(3*np.pi*y)
         for j in range(self.ndofs):
             for i in range(self.ndofs):
                 u[j*self.ndofs+i]=f(xn[i],yn[j])
