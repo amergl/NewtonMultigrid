@@ -141,3 +141,24 @@ class MyMultigrid(MultigridBase):
             do_v_cycle_recursive(self, self.vh[i], self.fh[i], nu1, nu2, i)
 
         return self.vh[0]
+
+    def do_fmg_cycle_recursive(self, rhs, h, nu0, nu1, nu2):
+        # set intial conditions (note: resetting vectors here is important!)
+        self.fh[0] = rhs
+
+        # downward cycle
+        if (h < self.nlevels - 1):
+            self.fh[h + 1] = self.trans[h].restrict(self.fh[h])
+            # plt.plot(h, self.fh[h])
+            self.vh[h + 1] = self.do_fmg_cycle_recursive(self.fh[h + 1], h + 1, nu0, nu1, nu2)
+        else:
+            self.vh[-1] = sLA.spsolve(self.Acoarse, self.fh[-1])
+            return self.vh[-1]
+
+        # correct
+        self.vh[h] = self.trans[h].prolong(self.vh[h + 1])
+
+        for i in range(nu0):
+            self.vh[h] = self.do_v_cycle(self.vh[h], self.fh[h], nu1, nu2, h)
+
+        return self.vh[h]
