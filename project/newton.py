@@ -33,10 +33,7 @@ class Newton(MultigridBase):
             
         r=prob.rhs - F(v)
         while max_outer > 0 and np.linalg.norm(r,np.inf) > eps:
-            if type(prob) is Nonlinear2D:
-                Jv = specificJacobi(prob.ndofs,prob.gamma, v)
-            else:
-                Jv = generalJacobi(F,v)
+            Jv = specificJacobi(prob.ndofs,prob.gamma, v)
             r=prob.rhs-F(v)
             e=sLA.splu(csc_matrix(Jv)).solve(r)
             v+=e
@@ -45,47 +42,35 @@ class Newton(MultigridBase):
 
     #nu0 No. pre smoothing
     #nu1 No. post smoothing
-    def do_newton_cycle(self, prob, v, rhs, nu1, nu2, level, max_inner=20,max_outer=20, eps=1e-10):
+    def do_newton_cycle(self, prob, nu1, nu2, n_v_cycles,max_outer=20, eps=1e-10):
 
+        v=np.ones(prob.rhs.shape[0])
         #compatibility for linear problems
         F = prob.A
         if type(prob.A) is csc_matrix:
             #wenn prob.A nicht linear -> dann Funktion ; Ansonsten: Matrix Vektor Produkt
             F = lambda x: prob.A.dot(x)
 
-        r=rhs - F(v)
-        # hier schleifenstart
+        r=prob.rhs-F(v)
+        
         while max_outer > 0 and np.linalg.norm(r,np.inf) > eps:
-            
-            if type(prob) is Nonlinear2D:
-                Jv = specificJacobi(prob.ndofs,prob.gamma, v)
-            else:
-                Jv = generalJacobi(F,v)        
-            
-            # r = Residium; prob.rhs = fj
-            r = rhs - F(v)
+            Jv = specificJacobi(prob.ndofs,prob.gamma, v)
+            r = prob.rhs - F(v)
 
-            # e = Fehler
-            e = self.approxError(Jv,r,prob,nu1,nu2,max_inner, level)
+            #approximate error using linear multigrid
+            mgrid = MyMultigrid(prob.ndofs,int(np.log2(prob.ndofs+1)))
+            mgrid.attach_transfer(LinearTransfer)
+            mgrid.attach_smoother(WeightedJacobi,Jv,omega=2.0/3.0)
+            e=np.ones(prob.ndofs)
+            for i in range(n_v_cycles):
+                e=mgrid.do_v_cycle(e,r,nu1,nu2,0)
+
             v += e
+            max_outer -= 1
             
-            max_outer -=1
         return v
 
-
-    def approxError(self,jacobian,residuum,prob,nu1,nu2,level,max_inner):
-        mgrid = MyMultigrid(prob.ndofs,2**(prob.ndofs)-1)
-        mgrid.attach_transfer(LinearTransfer)
-        mgrid.attach_smoother(WeightedJacobi,jacobian,omega=2.0/3.0)
-
-        e=ones(prob.ndofs)
-        for i in range(level,max_inner):
-            e=mgrid.do_v_cycle(e,residuum,nu1,nu2,i)
-            
-        return e;
-
     def do_newton_fmg_cycle(self, prob, rhs, level, nu0, nu1, nu2, max_inner=1,max_outer=20):
-        # set intial conditions (note: resetting vectors here is important!)
         self.fh[0] = rhs
 
         mgrid = MyMultigrid(prob.ndofs,2**(prob.ndofs)-1)
