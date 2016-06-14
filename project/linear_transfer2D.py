@@ -49,35 +49,42 @@ class LinearTransfer2D(TransferBase):
         n_coarse = int(math.sqrt(ndofs_coarse))
         n_fine = int(math.sqrt(ndofs_fine))
 
-        # This is a workaround, since I am not aware of a suitable way to do
-        # this directly with sparse matrices.
-        P = np.zeros((ndofs_fine, ndofs_coarse))
+        P = sp.dok_matrix((ndofs_fine, ndofs_coarse), dtype=float)
+
+        block1 = np.zeros((n_fine, n_coarse))
+        np.fill_diagonal(block1[1::2, :], 1.0)
+        np.fill_diagonal(block1[0::2, :], 1.0 / 2.0)
+        np.fill_diagonal(block1[2::2, :], 1.0 / 2.0)
+        block1 = sp.csc_matrix(block1)
+
+        block2 = np.zeros((n_fine, n_coarse))
+        np.fill_diagonal(block2[1::2, :], 1.0 / 2.0)
+        np.fill_diagonal(block2[0::2, :], 1.0 / 4.0)
+        np.fill_diagonal(block2[2::2, :], 1.0 / 4.0)
+
+        block2 = sp.csc_matrix(block2)
 
         for line_block in range(n_fine):
             if (line_block % 2 == 1):
-                np.fill_diagonal(P[line_block * n_fine + 1:line_block * n_fine + 5:2,
-                                 line_block / 2 * n_coarse:], 1.0)
-                np.fill_diagonal(P[line_block * n_fine + 0:line_block * n_fine + 5:2,
-                                 line_block / 2 * n_coarse:], 1.0 / 2.0)
-                np.fill_diagonal(P[line_block * n_fine + 2:line_block * n_fine + 5:2,
-                                 line_block / 2 * n_coarse:], 1.0 / 2.0)
+                for line in range(n_fine):
+                    for column in range(n_coarse):
+                        P[line_block * n_fine + line, (line_block - 1) / 2 * n_coarse + column] = block1[line, column]
 
             else:
-                np.fill_diagonal(P[line_block * n_fine + 1:line_block * n_fine + 5:2,
-                                 (line_block / 2 - 1) * n_coarse:], 1.0 / 2.0)
-                np.fill_diagonal(P[line_block * n_fine + 0:line_block * n_fine + 5:2,
-                                 (line_block / 2 - 1) * n_coarse:], 1.0 / 4.0)
-                np.fill_diagonal(P[line_block * n_fine + 2:line_block * n_fine + 5:2,
-                                 (line_block / 2 - 1) * n_coarse:], 1.0 / 4.0)
+                for line in range(n_fine):
+                    for column in range(n_coarse):
+                        if (line_block == 0):
+                            P[line_block * n_fine + line, line_block / 2 * n_coarse + column] = block2[line, column]
 
-                np.fill_diagonal(P[line_block * n_fine + 1:line_block * n_fine + 5:2,
-                                 (line_block / 2) * n_coarse:], 1.0 / 2.0)
-                np.fill_diagonal(P[line_block * n_fine + 0:line_block * n_fine + 5:2,
-                                 (line_block / 2) * n_coarse:], 1.0 / 4.0)
-                np.fill_diagonal(P[line_block * n_fine + 2:line_block * n_fine + 5:2,
-                                 (line_block / 2) * n_coarse:], 1.0 / 4.0)
+                        elif (line_block == n_fine -1):
+                            P[line_block * n_fine + line, (line_block / 2 - 1) * n_coarse + column] = block2[line, column]
 
-        return sp.csc_matrix(P)
+                        else:
+                            P[line_block * n_fine + line, (line_block / 2 - 1) * n_coarse + column] = block2[line, column]
+                            P[line_block * n_fine + line, (line_block / 2) * n_coarse + column] = block2[line, column]
+
+        #print P.todense()
+        return P.tocsc()
 
     def __get_restriction_matrix(self):
         """Helper routine for the restriction operator
@@ -122,7 +129,7 @@ class LinearTransfer2D(TransferBase):
         return self.I_2htoh.dot(u_fine)
 
 if __name__ == "__main__":
-    ndofs_fine = 31
-    ndofs_coarse = 15
+    ndofs_fine = 49
+    ndofs_coarse = 9
     lintans2D = LinearTransfer2D(ndofs_fine, ndofs_coarse)
 
