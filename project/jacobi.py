@@ -50,7 +50,7 @@ def specificJacobi(ndofs,gamma,u):
 
 
 #specificJacobi wiht generalJacobi-diag
-def specialJacobi(ndofs, gamma, u, g, delta=1e-4):
+def specialJacobi(ndofs, u, g, delta=1e-4):
     n = u.shape[0]
     m = n
     factor=-(ndofs+1)*(ndofs+1)#-1/h**2
