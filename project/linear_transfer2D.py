@@ -93,20 +93,8 @@ class LinearTransfer2D(TransferBase):
            scipy.sparse.csc_matrix: sparse restriction matrix of size
                 `ndofs_coarse` x `ndofs_fine`
         """
-        data = [ [1.0/16]*self.ndofs_fine, [1.0/8]*self.ndofs_fine, [1.0/16]*self.ndofs_fine,
-                 [1.0/8] *self.ndofs_fine, [1.0/4]*self.ndofs_fine, [1.0/8] *self.ndofs_fine,
-                 [1.0/16]*self.ndofs_fine, [1.0/8]*self.ndofs_fine, [1.0/16]*self.ndofs_fine ]
-        diags = [ -int(math.sqrt(self.ndofs_fine)) - 1, -int(math.sqrt(self.ndofs_fine)), -int(math.sqrt(self.ndofs_fine)) + 1,
-                 -1, 0, 1,
-                 int(math.sqrt(self.ndofs_fine)) - 1, int(math.sqrt(self.ndofs_fine)), int(math.sqrt(self.ndofs_fine)) +1 ]
-        print diags 
-        # matrix nxn
-        big_matrix = sp.spdiags( data, diags, self.ndofs_fine-2, self.ndofs_fine, format='csc' )
-        # matrix containing only every second row
-	#print big_matrix[::2, :].toarray()
-	print 
-	print
-        return big_matrix[::2,:]
+
+        return (1./4 * self.I_2htoh.transpose()).tocsc()
 
     def restrict(self, u_coarse):
         """Routine to apply restriction
@@ -132,4 +120,6 @@ if __name__ == "__main__":
     ndofs_fine = 7
     ndofs_coarse = 3
     lintans2D = LinearTransfer2D(ndofs_fine, ndofs_coarse)
+    print lintans2D.I_2htoh.todense()
+    print lintans2D.I_hto2h.todense()
 
