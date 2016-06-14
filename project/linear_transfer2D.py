@@ -34,7 +34,7 @@ class LinearTransfer2D(TransferBase):
         self.I_hto2h = self.__get_restriction_matrix()
 
     @staticmethod
-    def __get_prolongation_matrix(ndofs_coarse, ndofs_fine):
+    def __get_prolongation_matrix(n_coarse, n_fine):
         """Helper routine for the prolongation operator
 
         Args:
@@ -46,8 +46,8 @@ class LinearTransfer2D(TransferBase):
                 `ndofs_fine` x `ndofs_coarse`
         """
 
-        n_coarse = int(math.sqrt(ndofs_coarse))
-        n_fine = int(math.sqrt(ndofs_fine))
+        ndofs_coarse = n_coarse**2
+        ndofs_fine = n_fine**2
 
         P = sp.dok_matrix((ndofs_fine, ndofs_coarse), dtype=float)
 
@@ -129,7 +129,7 @@ class LinearTransfer2D(TransferBase):
         return self.I_2htoh.dot(u_fine)
 
 if __name__ == "__main__":
-    ndofs_fine = 49
-    ndofs_coarse = 9
+    ndofs_fine = 7
+    ndofs_coarse = 3
     lintans2D = LinearTransfer2D(ndofs_fine, ndofs_coarse)
 
