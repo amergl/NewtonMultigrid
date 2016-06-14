@@ -35,13 +35,15 @@ def generalJacobi(g,x,delta=1e-4):
 
 def specificJacobi(ndofs,gamma,u):
     factor=-(ndofs+1)*(ndofs+1)#-1/h**2
-    diag=zeros(ndofs*ndofs)
+    size=ndofs*ndofs
+    diag=zeros(size)
     for j in range(ndofs):
         for i in range(ndofs):
-            diag[j*ndofs+i]=-4*factor + gamma * u[j*ndofs+i] * exp(u[j*ndofs+i])
-    data=[diag,[factor]*ndofs*ndofs,[factor]*ndofs*ndofs,[factor]*ndofs*ndofs,[factor]*ndofs*ndofs]
+            diag[j*ndofs+i]= gamma * u[j*ndofs+i] * exp(u[j*ndofs+i])
+    diag+=-4*factor
+    data=[diag,[factor]*size,[factor]*size,[factor]*size,[factor]*size]
     offset=[0,-1,1,-ndofs,ndofs]
-    M = sparse.spdiags(data,offset,ndofs*ndofs,ndofs*ndofs,format='lil')
+    M = sparse.spdiags(data,offset,size,size,format='lil')
     for i in range(1,ndofs):
         M[i*ndofs,i*ndofs-1]=M[i*ndofs-1,i*ndofs]=0
     return sparse.csc_matrix(M)
