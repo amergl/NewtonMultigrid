@@ -87,7 +87,6 @@ class LinearTransfer2D(TransferBase):
         Returns:
             numpy.ndarray: vector on fine grid, size `ndofs_fine`
         """
-        print self.I_hto2h.shape, u_coarse.shape
         return self.I_hto2h.dot(u_coarse)
 
     def prolong(self, u_fine):

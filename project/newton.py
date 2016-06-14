@@ -92,17 +92,16 @@ class Newton(MultigridBase):
 		
         mgrid = MyMultigrid(prob.ndofs,int(np.log2(prob.ndofs+1)))
         mgrid.attach_transfer(LinearTransfer2D)
-        mgrid.attach_smoother(WeightedJacobi,specificJacobi(prob.ndofs,prob.gamma, np.ones(rhs.shape[0])),omega=2.0/3.0)
+        mgrid.attach_smoother(WeightedJacobi,specificJacobi(int(math.sqrt(rhs.shape[0])),prob.gamma, np.ones(rhs.shape[0])),omega=2.0/3.0)
 
 
         # downward cycle
         if (level < self.nlevels - 1):
             self.fh[level + 1] = mgrid.trans[level].restrict(self.fh[level])
             # plt.plot(level, self.flevel[level])
+	    print level
             self.vh[level + 1] = self.do_newton_fmg_cycle(prob,self.fh[level + 1], level + 1, nu0, nu1, nu2)
         else:
-            print self.Acoarse.shape
-            print fh.shape
             self.vh[-1] = sLA.spsolve(self.Acoarse, self.fh[-1])
             return self.vh[-1]
 
