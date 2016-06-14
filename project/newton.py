@@ -43,7 +43,6 @@ class Newton(MultigridBase):
     #nu0 No. pre smoothing
     #nu1 No. post smoothing
     def do_newton_cycle(self, prob, nu1, nu2, n_v_cycles,max_outer=20, eps=1e-10):
-
         v=np.ones(prob.rhs.shape[0])
         #compatibility for linear problems
         F = prob.A

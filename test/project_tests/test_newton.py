@@ -10,9 +10,7 @@ from project.nontrivial2d import Nontrivial2D
 from time import time
 
 def test_newton(problem,ndofs=4,eps=1e-8):
-    if problem is "Poisson":
-        prob = Poisson1D(ndofs)
-    elif problem is "PseudoNonLinear":
+    if problem is "PseudoNonLinear":
         prob = Nonlinear2D(ndofs,0)
     elif problem is "NonLinear":
         prob = Nonlinear2D(ndofs,1e3)
@@ -56,11 +54,10 @@ def test_newton(problem,ndofs=4,eps=1e-8):
         assert error < eps;
 
 if __name__ == "__main__":
-
     print "%-15s %-15s %-12s %-15s"%("Problem","Method","||e||","Time")
     print "---------------------------------------------------"
-    ndofs=31
-    #test_newton("Poisson",ndofs)
+    k=3
+    ndofs=2**k -1
     test_newton("PseudoNonLinear", ndofs)
     test_newton("NonLinear", ndofs)
     test_newton("NonTrivial", ndofs)
