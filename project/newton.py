@@ -24,35 +24,29 @@ class Newton(MultigridBase):
         assert np.log2(ndofs+1) >= nlevels
         super(Newton, self).__init__(ndofs, nlevels)
         self.ndofs=ndofs
-
+        self.mgrid=MyMultigrid(ndofs,int(np.log2(ndofs+1)))
+        self.mgrid.attach_transfer(LinearTransfer2D)
 
     #pushes from current_level to level
-    def single_push(self, ndofs, v,level):
-        mgrid = MyMultigrid(ndofs,int(np.log2(ndofs+1)))
-    	mgrid.attach_transfer(LinearTransfer2D)
-
+    def single_push(self,v,level):
         vn=v
         for i in range(level):
-	    	vn = mgrid.trans[i].restrict(vn)
+	    	vn = self.mgrid.trans[i].restrict(vn)
     	return vn
         
-    def push(self, prob, v, rhs, level):
-        return self.single_push(prob.ndofs,v,level),self.single_push(prob.ndofs,rhs,level)
+    def push(self, v, rhs, level):
+        return self.single_push(v,level),self.single_push(rhs,level)
 
     #pulls from level to 0
-    def single_pull(self, ndofs, v,level):
-        #approximate error using linear multigrid
-        mgrid = MyMultigrid(ndofs,int(np.log2(ndofs+1)))
-    	mgrid.attach_transfer(LinearTransfer2D)
-
+    def single_pull(self,v,level):
         vn=v
         for i in reversed(range(level)):
-	    vn = mgrid.trans[i].prolong(vn)
+	    vn = self.mgrid.trans[i].prolong(vn)
 
     	return vn
     	
-    def pull(self, prob, v, rhs, level):
-        return self.single_pull(prob.ndofs,v,level),self.single_pull(prob.ndofs,rhs,level)
+    def pull(self,v, rhs, level):
+        return self.single_pull(v,level),self.single_pull(rhs,level)
 
 
     def do_newton_lu_cycle(self,prob,max_outer=20,eps=1e-10):
@@ -94,9 +88,9 @@ class Newton(MultigridBase):
 
         r=np.ones(current_ndofs)
         while max_outer > 0 and np.linalg.norm(r,np.inf) > eps:
-            v_prol, rhs_prol = self.pull(prob,v,rhs,level)
+            v_prol, rhs_prol = self.pull(v,rhs,level)
             r_prol = rhs_prol - F(v_prol)
-            r=self.single_push(prob.ndofs,r_prol,level)
+            r=self.single_push(r_prol,level)
 
             Jv = specificJacobi(current_ndofs,prob.gamma,v)
             mgrid.attach_smoother(WeightedJacobi,Jv,omega=2.0/3.0)
