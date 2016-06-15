@@ -71,9 +71,9 @@ if __name__ == "__main__":
     fstring="%-20s %.4e %.4e"
     print "--------------------------------------------"
     #start with a newton fmg cycle and further reduce the residuum
-    n0=1
+    nu0=1
     nu1=nu2=2
-    v = newton.do_newton_fmg_cycle(prob, prob.rhs, 0, nu1, nu1, nu2)
+    v = newton.do_newton_fmg_cycle(prob, prob.rhs, 0, nu0, nu1, nu2)
     error = linalg.norm(v - prob.u_exact, inf)
     res = linalg.norm(prob.rhs - prob.A(v), inf)
     n_v_cycles=2
