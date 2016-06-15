@@ -67,7 +67,7 @@ class Newton(MultigridBase):
         return v, max_outer
 
     def newton_mg(self, prob, nu1, nu2, n_v_cycles=1):
-        return self.do_newton_cycle(prob,np.ones(prob.rhs.shape),prob.rhs,nu1,nu2,0,n_v_cycles)
+        return self.do_newton_cycle(prob,np.zeros(prob.rhs.shape),prob.rhs,nu1,nu2,0,n_v_cycles)
 
     #nu0 No. pre smoothing
     #nu1 No. post smoothing
@@ -109,7 +109,6 @@ class Newton(MultigridBase):
         current_ndofs = int(math.sqrt(rhs.shape[0]))		
         mgrid = MyMultigrid(current_ndofs,int(np.log2(current_ndofs+1)))
         mgrid.attach_transfer(LinearTransfer2D)
-        ############ TODO F ans ende, push prob parameter rauswerfen
         M = specificJacobi(current_ndofs,prob.gamma, np.ones(rhs.shape[0]))
         mgrid.attach_smoother(WeightedJacobi,M,omega=2.0/3.0)
 

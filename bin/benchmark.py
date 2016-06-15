@@ -9,7 +9,7 @@ if __name__ == "__main__":
     #table 2: convergence factor
     print "Table 2:"
     #ndofs=127
-    k=3
+    k=5
     ndofs=2**k - 1
     gammas=[0,1,10,100,1000,10000]
     its=[]
@@ -60,11 +60,9 @@ if __name__ == "__main__":
     inner=[20,10,5,2,1]
     for iteration in inner:
         #set inner iterations
-        v, outer = newton.newton_mg(prob, 1, 1, n_v_cycles=iteration)[0:2]
+        v, outer = newton.newton_mg(prob, 3, 3, n_v_cycles=iteration)[0:2]
         outer = 20 - outer
-        #outer=0#calc using inexact newton
         print fstring%("Newton-MG",outer,iteration)
-
     print "\n\n"
 
     print "Table 5:"
@@ -73,8 +71,9 @@ if __name__ == "__main__":
     fstring="%-20s %.4e %.4e"
     print "--------------------------------------------"
     #start with a newton fmg cycle and further reduce the residuum
+    n0=1
     nu1=nu2=2
-    v = newton.do_newton_fmg_cycle(prob, prob.rhs, 0, 0, nu1, nu2)
+    v = newton.do_newton_fmg_cycle(prob, prob.rhs, 0, nu1, nu1, nu2)
     error = linalg.norm(v - prob.u_exact, inf)
     res = linalg.norm(prob.rhs - prob.A(v), inf)
     n_v_cycles=2
