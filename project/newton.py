@@ -70,7 +70,7 @@ class Newton(MultigridBase):
             e=sLA.splu(csc_matrix(Jv)).solve(r)
             v+=e
             max_outer -= 1
-        return v
+        return v, max_outer
 
     def newton_mg(self, prob, nu1, nu2, n_v_cycles=1):
         return self.do_newton_cycle(prob,np.ones(prob.rhs.shape),prob.rhs,nu1,nu2,0,n_v_cycles)
@@ -108,7 +108,7 @@ class Newton(MultigridBase):
             v += e
             max_outer -= 1
             
-        return v
+        return v, max_outer
 
     def do_newton_fmg_cycle(self, prob, rhs, level, nu0, nu1, nu2, max_inner=1,max_outer=20):
         self.fh[level] = rhs
@@ -127,6 +127,6 @@ class Newton(MultigridBase):
             return self.vh[-1]
 
         for i in range(nu0):
-            self.vh[level] = self.do_newton_cycle(prob,self.vh[level], self.fh[level], nu1, nu2, level, max_inner, max_outer)
+            self.vh[level] = self.do_newton_cycle(prob,self.vh[level], self.fh[level], nu1, nu2, level, max_inner, max_outer)[0]
 
         return self.vh[level]
