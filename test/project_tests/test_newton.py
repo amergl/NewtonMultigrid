@@ -33,12 +33,13 @@ def test_newton(problem,ndofs=4,eps=1e-8):
     print fstring%(problem,"Newton",error,duration)
     #assert error < eps
 
-    
+
+
     nu1=1
     nu2=1
-    n_v_cycles=20
+    n_v_cycles=5
     begin=time()
-    x=newton.do_newton_cycle2(prob,nu1,nu2,n_v_cycles)
+    x=newton.newton_mg(prob,nu1,nu2,n_v_cycles)
     duration=time()-begin
     error=linalg.norm(x-prob.u_exact)
     print fstring%(problem,"Newton-MG",error,duration)

@@ -35,12 +35,13 @@ class MultigridBase(with_metaclass(abc.ABCMeta)):
         """
         assert isinstance(nlevels, int)
         assert 0 <= nlevels <= np.log2(ndofs+1)
-
+        
         self.nlevels = nlevels
+        
         self._ndofs_list = [int((ndofs + 1) / 2**l) - 1 for l in range(nlevels)]
 
-        self.vh = [np.zeros(ndofs_h) for ndofs_h in self._ndofs_list]
-        self.fh = [np.zeros(ndofs_h) for ndofs_h in self._ndofs_list]
+        self.vh = [np.zeros(ndofs_h**2) for ndofs_h in self._ndofs_list]
+        self.fh = [np.zeros(ndofs_h**2) for ndofs_h in self._ndofs_list]
 
         self.trans = []
         self.smoo = []
@@ -52,8 +53,8 @@ class MultigridBase(with_metaclass(abc.ABCMeta)):
         Args:
             lstart (int): level to start from (all below will be set to zero)
         """
-        self.vh[lstart:] = [np.zeros(ndofs_h) for ndofs_h in self._ndofs_list[lstart:]]
-        self.fh[lstart:] = [np.zeros(ndofs_h) for ndofs_h in self._ndofs_list[lstart:]]
+        self.vh[lstart:] = [np.zeros(ndofs_h**2) for ndofs_h in self._ndofs_list[lstart:]]
+        self.fh[lstart:] = [np.zeros(ndofs_h**2) for ndofs_h in self._ndofs_list[lstart:]]
 
     def attach_smoother(self, smoother_class, A, *args, **kwargs):
         """Routine to attach a smoother to each level (except for the coarsest)
@@ -71,9 +72,7 @@ class MultigridBase(with_metaclass(abc.ABCMeta)):
         for l in range(0, self.nlevels-1):
             self.smoo.append(smoother_class(self.Acoarse, *args, **kwargs))
             # here comes Galerkin
-	    print self.trans[l].I_2htoh.shape, self.Acoarse.shape, self.trans[l].I_hto2h.shape, l
             self.Acoarse = self.trans[l].I_hto2h.dot(self.Acoarse.dot(self.trans[l].I_2htoh))
-	    print self.Acoarse.shape
         # in case we want to do smoothing instead of solving on the coarsest level:
         self.smoo.append(smoother_class(self.Acoarse, *args, **kwargs))
 
