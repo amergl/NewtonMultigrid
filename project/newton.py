@@ -94,7 +94,6 @@ class Newton(MultigridBase):
 
         r=np.ones(current_ndofs)
         while max_outer > 0 and np.linalg.norm(r,np.inf) > eps:
-            
             v_prol, rhs_prol = self.pull(prob,v,rhs,level)
             r_prol = rhs_prol - F(v_prol)
             r=self.single_push(prob.ndofs,r_prol,level)
@@ -120,12 +119,11 @@ class Newton(MultigridBase):
         M = specificJacobi(current_ndofs,prob.gamma, np.ones(rhs.shape[0]))
         mgrid.attach_smoother(WeightedJacobi,M,omega=2.0/3.0)
 
-        if (level < self.nlevels - 2):
-            self.fh[level + 1] = mgrid.trans[level].restrict(self.fh[level])
-            # plt.plot(level, self.flevel[level])
+        if (level < self.nlevels - 1):
+            self.fh[level + 1] = mgrid.trans[0].restrict(self.fh[level])
             self.vh[level + 1] = self.do_newton_fmg_cycle(prob,self.fh[level + 1], level + 1, nu0, nu1, nu2)
         else:
-            self.vh[-1] = self.do_newton_cycle(prob,self.vh[-1], self.fh[-1], nu1, nu2, level, n_v_cycles=1, max_outer=1) #sLA.spsolve(M, self.fh[-1])
+            self.vh[-1] = self.fh[-1]/M[0,0]#self.do_newton_cycle(prob,self.vh[-1], self.fh[-1], nu1, nu2, level, n_v_cycles=1, max_outer=1) #sLA.spsolve(M, self.fh[-1])
             return self.vh[-1]
 
         for i in range(nu0):

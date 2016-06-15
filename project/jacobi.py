@@ -36,6 +36,8 @@ def generalJacobi(g,x,delta=1e-4):
 def specificJacobi(ndofs,gamma,u):
     factor=-(ndofs+1)*(ndofs+1)#-1/h**2
     size=ndofs*ndofs
+    if ndofs == 1:
+        return sparse.csc_matrix([gamma * u[0] * exp(u[0]) + gamma*exp(u[0]) -4*factor])
     diag=zeros(size)
     for j in range(ndofs):
         for i in range(ndofs):

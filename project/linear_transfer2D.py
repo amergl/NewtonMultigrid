@@ -83,7 +83,6 @@ class LinearTransfer2D(TransferBase):
                             P[line_block * n_fine + line, (line_block / 2 - 1) * n_coarse + column] = block2[line, column]
                             P[line_block * n_fine + line, (line_block / 2) * n_coarse + column] = block2[line, column]
 
-        #print P.todense()
         return P.tocsc()
 
     def __get_restriction_matrix(self):
