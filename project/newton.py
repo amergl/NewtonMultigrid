@@ -95,11 +95,11 @@ class Newton(MultigridBase):
             Jv = specificJacobi(current_ndofs,prob.gamma,v)
             mgrid.attach_smoother(WeightedJacobi,Jv,omega=2.0/3.0)
 
-            e=np.ones(r.shape[0])
+            e=np.zeros(r.shape[0])
             for i in range(n_v_cycles):
                 e=mgrid.do_v_cycle(e,r,nu1,nu2,0)
-
             v += e
+            
             max_outer -= 1
             
         return v, max_outer

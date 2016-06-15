@@ -2,13 +2,15 @@
 
 from project.newton import Newton
 from project.nontrivial2d import Nontrivial2D
+
 from numpy import *
 
 if __name__ == "__main__":
     #table 2: convergence factor
     print "Table 2:"
     #ndofs=127
-    ndofs=7
+    k=3
+    ndofs=2**k - 1
     gammas=[0,1,10,100,1000,10000]
     its=[]
     factors=[]
@@ -64,18 +66,21 @@ if __name__ == "__main__":
         print fstring%("Newton-MG",outer,iteration)
 
     print "\n\n"
+
     print "Table 5:"
     fstring="%-20s %10s %10s"
     print fstring%("Cycle","||r||","||e||")
     fstring="%-20s %.4e %.4e"
     print "--------------------------------------------"
     #start with a newton fmg cycle and further reduce the residuum
-    v = newton.do_newton_fmg_cycle(prob, prob.rhs, 0, 0, 1, 1)
+    nu1=nu2=2
+    v = newton.do_newton_fmg_cycle(prob, prob.rhs, 0, 0, nu1, nu2)
     error = linalg.norm(v - prob.u_exact, inf)
     res = linalg.norm(prob.rhs - prob.A(v), inf)
+    n_v_cycles=2
     print fstring%("FMG-Newton-MG",res,error)
     for i in range(1,14):
-        v = newton.do_newton_fmg_cycle(prob, prob.rhs, 0, i, 1, 1)
+        v = newton.do_newton_cycle(prob, v, prob.rhs, nu1, nu2,0, n_v_cycles)[0]
         error = linalg.norm(v - prob.u_exact, inf)
         res = linalg.norm(prob.rhs - prob.A(v), inf)
         print fstring%("Newton-MG %d"%i,res,error)
