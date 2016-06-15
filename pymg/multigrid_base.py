@@ -71,9 +71,7 @@ class MultigridBase(with_metaclass(abc.ABCMeta)):
         for l in range(0, self.nlevels-1):
             self.smoo.append(smoother_class(self.Acoarse, *args, **kwargs))
             # here comes Galerkin
-	    print self.trans[l].I_2htoh.shape, self.Acoarse.shape, self.trans[l].I_hto2h.shape, l
             self.Acoarse = self.trans[l].I_hto2h.dot(self.Acoarse.dot(self.trans[l].I_2htoh))
-	    print self.Acoarse.shape
         # in case we want to do smoothing instead of solving on the coarsest level:
         self.smoo.append(smoother_class(self.Acoarse, *args, **kwargs))
 

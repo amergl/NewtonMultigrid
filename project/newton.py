@@ -59,13 +59,13 @@ class Newton(MultigridBase):
             #wenn prob.A nicht linear -> dann Funktion ; Ansonsten: Matrix Vektor Produkt
             F = lambda x: prob.A.dot(x)
 
-		# restrict upwards for incompatibility problems concerning the operator
+		# prolongate upwards for incompatibility problems concerning the operator
         v_rest, rhs_rest = self.push(prob,v,rhs,level)
 	    	
         r=rhs_rest-F(v_rest)
-        # prolongate downwards for incompatibility problems concerning the operator
+        # restrict downwards for incompatibility problems concerning the operator
         for i in range(0, self.nlevels-level):
-	    	r = mgrid.trans[i].prolong(r)
+	    	r = mgrid.trans[i].restrict(r)
         
         
         while max_outer > 0 and np.linalg.norm(r,np.inf) > eps:
@@ -73,9 +73,9 @@ class Newton(MultigridBase):
             
             v_rest, rhs_rest = self.push(prob,v,rhs,level)
             r = rhs_rest - F(v_rest)
-            # prolongate downwards 
+            # restrict downwards 
             for i in range(0, self.nlevels-level):
-	    		r = mgrid.trans[i].prolong(r)
+	    		r = mgrid.trans[i].restrict(r)
 
             mgrid.attach_smoother(WeightedJacobi,Jv,omega=2.0/3.0)
             e=np.ones(r.shape[0])
@@ -90,7 +90,6 @@ class Newton(MultigridBase):
     def do_newton_fmg_cycle(self, prob, rhs, level, nu0, nu1, nu2, max_inner=1,max_outer=20):
         self.fh[0] = rhs
         current_ndofs = int(math.sqrt(rhs.shape[0]))		
-	print current_ndofs, prob.ndofs
         mgrid = MyMultigrid(current_ndofs,int(np.log2(current_ndofs+1)))
         mgrid.attach_transfer(LinearTransfer2D)
         M = specificJacobi(int(math.sqrt(rhs.shape[0])),prob.gamma, np.ones(rhs.shape[0]))
@@ -101,16 +100,14 @@ class Newton(MultigridBase):
         if (level < self.nlevels - 2):
             self.fh[level + 1] = mgrid.trans[level].restrict(self.fh[level])
             # plt.plot(level, self.flevel[level])
-	    print level
             self.vh[level + 1] = self.do_newton_fmg_cycle(prob,self.fh[level + 1], level + 1, nu0, nu1, nu2)
         else:
-	    print M.todense(), M.shape, self.fh[-1].shape
             self.vh[-1] = self.do_newton_cycle(prob,self.vh[-1], self.fh[-1], nu1, nu2, level, n_v_cycles=1, max_outer=1) #sLA.spsolve(M, self.fh[-1])
             return self.vh[-1]
 
         for i in range(nu0):
+            print level
             self.vh[level] = self.do_newton_cycle(prob,self.vh[level], self.fh[level], nu1, nu2, level, max_inner, max_outer)
-	    print "Newton"
 
         return self.vh[level]
         
@@ -119,10 +116,10 @@ class Newton(MultigridBase):
         mgrid = MyMultigrid(prob.ndofs,int(np.log2(prob.ndofs+1)))
     	mgrid.attach_transfer(LinearTransfer2D)
     	
-    	# restrict upwards for incompatibility problems concerning the operator
-        for i in range(0, self.nlevels-level):
-	    	v = mgrid.trans[i].restrict(v)
-	    	rhs = mgrid.trans[i].restrict(rhs) 	
+    	# prolongate upwards for incompatibility problems concerning the operator
+        for i in range(self.nlevels-level-1,-1, -1):
+	    	v = mgrid.trans[i].prolong(v)
+	    	rhs = mgrid.trans[i].prolong(rhs) 	
     	return v, rhs
     	
     def pull(self, prob, v, rhs, level):
@@ -130,7 +127,7 @@ class Newton(MultigridBase):
         mgrid = MyMultigrid(prob.ndofs,int(np.log2(prob.ndofs+1)))
     	mgrid.attach_transfer(LinearTransfer2D)
     	
-    	# prolongate downwards for incompatibility problems concerning the operator
+    	# restrict downwards for incompatibility problems concerning the operator
         for i in range(0, self.nlevels-level):
 	    	v = mgrid.trans[i].prolong(v)
 	    	rhs = mgrid.trans[i].prolong(rhs) 	
