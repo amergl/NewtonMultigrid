@@ -26,43 +26,42 @@ def test_newton(problem,ndofs=4,eps=1e-8):
 
     fstring="%-15s %-15s %e %.4f"
     
-    #if False:
-    nu0=1
-    nu1=1
-    nu2=1
-    begin=time()
-    x=newton.do_newton_fmg_cycle(prob, prob.rhs, level, nu0, nu1, nu2)
-    duration=time()-begin
-    error=linalg.norm(x-prob.u_exact)
-    print fstring%(problem,"Newton-FMG",error,duration)
-    assert error < eps
-    quit()
-    
     begin=time()
     x=newton.do_newton_lu_cycle(prob)
     duration=time()-begin
     error=linalg.norm(x-prob.u_exact)
     print fstring%(problem,"Newton",error,duration)
-    assert error < eps
+    #assert error < eps
 
+    
+    nu1=1
+    nu2=1
+    n_v_cycles=20
+    begin=time()
+    x=newton.do_newton_cycle2(prob,nu1,nu2,n_v_cycles)
+    duration=time()-begin
+    error=linalg.norm(x-prob.u_exact)
+    print fstring%(problem,"Newton-MG",error,duration)
+    #assert error < eps
+
+    
     if False:
+        nu0=1
         nu1=1
         nu2=1
-        n_v_cycles=20
         begin=time()
-        x=newton.do_newton_cycle(prob,nu1,nu2,n_v_cycles)
+        x=newton.do_newton_fmg_cycle(prob, prob.rhs, level, nu0, nu1, nu2)
         duration=time()-begin
         error=linalg.norm(x-prob.u_exact)
-        print fstring%(problem,"Newton-MG",error,duration)
-        assert error < eps
-
+        print fstring%(problem,"Newton-FMG",error,duration)
+        #assert error < eps
     
 
 
 if __name__ == "__main__":
     print "%-15s %-15s %-12s %-15s"%("Problem","Method","||e||","Time")
     print "---------------------------------------------------"
-    k=3
+    k=4
     ndofs=2**k -1
     test_newton("PseudoNonLinear", ndofs)
     test_newton("NonLinear", ndofs)
