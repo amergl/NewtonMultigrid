@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 #from pymg.multigrid_base import MultigridBase
-from project.jacobi import generalJacobi,specificJacobi
+from project.jacobi import specialJacobi
 from scipy.sparse import *
 
 
@@ -35,7 +35,7 @@ class Newton(MultigridBase):
             
         r=prob.rhs - F(v)
         while max_outer > 0 and np.linalg.norm(r,np.inf) > eps:
-            Jv = specificJacobi(prob.ndofs,prob.gamma, v)
+            Jv = specialJacobi(prob.ndofs,prob.gamma, v, F)
             r=prob.rhs-F(v)
             e=sLA.splu(csc_matrix(Jv)).solve(r)
             v+=e
@@ -70,7 +70,7 @@ class Newton(MultigridBase):
         
         
         while max_outer > 0 and np.linalg.norm(r,np.inf) > eps:
-            Jv = specificJacobi(r.shape[0],prob.gamma, v)
+            Jv = specialJacobi(r.shape[0],prob.gamma, v, F)
             
             v_rest, rhs_rest = self.push(prob,v,rhs,level)
             r = rhs_rest - F(v_rest)
@@ -91,10 +91,10 @@ class Newton(MultigridBase):
     def do_newton_fmg_cycle(self, prob, rhs, level, nu0, nu1, nu2, max_inner=1,max_outer=20):
         self.fh[0] = rhs
         current_ndofs = int(math.sqrt(rhs.shape[0]))		
-	print current_ndofs, prob.ndofs
         mgrid = MyMultigrid(current_ndofs,int(np.log2(current_ndofs+1)))
         mgrid.attach_transfer(LinearTransfer2D)
-        M = specificJacobi(int(math.sqrt(rhs.shape[0])),prob.gamma, np.ones(rhs.shape[0]))
+        ############ TODO F ans ende, push prob parameter rauswerfen
+        M = specialJacobi(current_ndofs,prob.gamma, np.ones(rhs.shape[0]), lambda x: rhs - self.push(prob.ndofs,prob.A(self.push(x))))
         mgrid.attach_smoother(WeightedJacobi,M,omega=2.0/3.0)
 
         if (level < self.nlevels - 2):
@@ -111,25 +111,28 @@ class Newton(MultigridBase):
             self.vh[level] = self.do_newton_cycle(prob,self.vh[level], self.fh[level], nu1, nu2, level, max_inner, max_outer)
 
         return self.vh[level]
-        
-    def push(self, prob, v, rhs, level):
-    	#approximate error using linear multigrid
-        mgrid = MyMultigrid(prob.ndofs,int(np.log2(prob.ndofs+1)))
+
+    def push(self, ndofs, v,level):
+        mgrid = MyMultigrid(ndofs,int(np.log2(ndofs+1)))
     	mgrid.attach_transfer(LinearTransfer2D)
     	
     	# restrict upwards for incompatibility problems concerning the operator
         for i in range(0, self.nlevels-level):
 	    	v = mgrid.trans[i].restrict(v)
-	    	rhs = mgrid.trans[i].restrict(rhs) 	
-    	return v, rhs
-    	
-    def pull(self, prob, v, rhs, level):
-    	#approximate error using linear multigrid
-        mgrid = MyMultigrid(prob.ndofs,int(np.log2(prob.ndofs+1)))
+    	return v
+        
+    def push(self, prob, v, rhs, level):
+        return push(prob.ndofs,v,level),push(prob.ndofs,rhs,level)
+
+    def pull(self, ndofs, v,level):
+        #approximate error using linear multigrid
+        mgrid = MyMultigrid(ndofs,int(np.log2(ndofs+1)))
     	mgrid.attach_transfer(LinearTransfer2D)
     	
     	# prolongate downwards for incompatibility problems concerning the operator
         for i in range(0, self.nlevels-level):
 	    	v = mgrid.trans[i].prolong(v)
-	    	rhs = mgrid.trans[i].prolong(rhs) 	
-    	return v, rhs
+    	return v
+    	
+    def pull(self, prob, v, rhs, level):
+        return pull(prob.ndofs,v,level),pull(prob.ndofs,rhs,level)
