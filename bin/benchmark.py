@@ -21,7 +21,7 @@ if __name__ == "__main__":
         v, outer = newton.do_newton_lu_cycle(prob, max_outer=20, eps=1e-10)[0:2]
         outer = 20 - outer
         its.append(outer)
-        factors.append(linalg.norm(v - prob.u_exact)/linalg.norm(old_v - prob.u_exact))
+        factors.append(linalg.norm(v - prob.u_exact, inf)/linalg.norm(old_v - prob.u_exact, inf))
         old_v = v
     fstring="%-20s|"
     rhsstring="%.2e"
@@ -71,11 +71,11 @@ if __name__ == "__main__":
     print "--------------------------------------------"
     #start with a newton fmg cycle and further reduce the residuum
     v = newton.do_newton_fmg_cycle(prob, prob.rhs, 0, 0, 1, 1)
-    error = linalg.norm(v - prob.u_exact)
-    res = linalg.norm(prob.rhs - prob.A(v),inf)
+    error = linalg.norm(v - prob.u_exact, inf)
+    res = linalg.norm(prob.rhs - prob.A(v), inf)
     print fstring%("FMG-Newton-MG",res,error)
     for i in range(1,14):
-        v = newton.do_newton_fmg_cycle(prob, prob.rhs, 0, i, 1, 1)[0]
-        error = linalg.norm(v - prob.u_exact)
-        res = linalg.norm(v - prob.u_exact) / linalg.norm(prob.u_exact)
+        v = newton.do_newton_fmg_cycle(prob, prob.rhs, 0, i, 1, 1)
+        error = linalg.norm(v - prob.u_exact, inf)
+        res = linalg.norm(prob.rhs - prob.A(v), inf)
         print fstring%("Newton-MG %d"%i,res,error)
