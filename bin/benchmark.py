@@ -8,7 +8,7 @@ if __name__ == "__main__":
     #table 2: convergence factor
     print "Table 2:"
     #ndofs=127
-    ndofs=15
+    ndofs=7
     gammas=[0,1,10,100,1000,10000]
     its=[]
     factors=[]
@@ -24,7 +24,7 @@ if __name__ == "__main__":
         factors.append(linalg.norm(v - prob.u_exact)/linalg.norm(old_v - prob.u_exact))
         old_v = v
     fstring="%-20s|"
-    rhsstring="%5s"
+    rhsstring="%.2e"
     print fstring%"Gamma",
 
     for gamma in gammas:
@@ -67,11 +67,12 @@ if __name__ == "__main__":
     print "Table 5:"
     fstring="%-20s %10s %10s"
     print fstring%("Cycle","||r||","||e||")
+    fstring="%-20s %.4e %.4e"
     print "--------------------------------------------"
     #start with a newton fmg cycle and further reduce the residuum
     v = newton.do_newton_fmg_cycle(prob, prob.rhs, 0, 0, 1, 1)
     error = linalg.norm(v - prob.u_exact)
-    res = linalg.norm(prob.rhs - prob.A.dot(v))
+    res = linalg.norm(prob.rhs - prob.A(v),inf)
     print fstring%("FMG-Newton-MG",res,error)
     for i in range(1,14):
         v = newton.do_newton_fmg_cycle(prob, prob.rhs, 0, i, 1, 1)[0]
