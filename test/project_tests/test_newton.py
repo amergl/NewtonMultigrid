@@ -27,7 +27,7 @@ def test_newton(problem,ndofs=4,eps=1e-8):
     fstring="%-15s %-15s %e %.4f"
     
     begin=time()
-    x=newton.do_newton_lu_cycle(prob)
+    x=newton.do_newton_lu_cycle(prob)[0]
     duration=time()-begin
     error=linalg.norm(x-prob.u_exact)
     print fstring%(problem,"Newton",error,duration)
@@ -39,7 +39,7 @@ def test_newton(problem,ndofs=4,eps=1e-8):
     nu2=1
     n_v_cycles=5
     begin=time()
-    x=newton.newton_mg(prob,nu1,nu2,n_v_cycles)
+    x=newton.newton_mg(prob,nu1,nu2,n_v_cycles)[0]
     duration=time()-begin
     error=linalg.norm(x-prob.u_exact)
     print fstring%(problem,"Newton-MG",error,duration)

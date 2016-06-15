@@ -70,7 +70,7 @@ class Newton(MultigridBase):
             e=sLA.splu(csc_matrix(Jv)).solve(r)
             v+=e
             max_outer -= 1
-        return v
+        return v, max_outer, e, r
 
     def newton_mg(self, prob, nu1, nu2, n_v_cycles=1):
         return self.do_newton_cycle(prob,np.ones(prob.rhs.shape),prob.rhs,nu1,nu2,0,n_v_cycles)
@@ -94,7 +94,6 @@ class Newton(MultigridBase):
 
         r=np.ones(current_ndofs)
         while max_outer > 0 and np.linalg.norm(r,np.inf) > eps:
-            
             v_prol, rhs_prol = self.pull(prob,v,rhs,level)
             r_prol = rhs_prol - F(v_prol)
             r=self.single_push(prob.ndofs,r_prol,level)
@@ -109,7 +108,7 @@ class Newton(MultigridBase):
             v += e
             max_outer -= 1
             
-        return v
+        return v, max_outer, e, r
 
     def do_newton_fmg_cycle(self, prob, rhs, level, nu0, nu1, nu2, max_inner=1,max_outer=20):
         self.fh[0] = rhs
@@ -123,12 +122,12 @@ class Newton(MultigridBase):
         if (level < self.nlevels - 2):
             self.fh[level + 1] = mgrid.trans[level].restrict(self.fh[level])
             # plt.plot(level, self.flevel[level])
-            self.vh[level + 1] = self.do_newton_fmg_cycle(prob,self.fh[level + 1], level + 1, nu0, nu1, nu2)
+            self.vh[level + 1], max_outer, e, r = self.do_newton_fmg_cycle(prob,self.fh[level + 1], level + 1, nu0, nu1, nu2)
         else:
-            self.vh[-1] = self.do_newton_cycle(prob,self.vh[-1], self.fh[-1], nu1, nu2, level, n_v_cycles=1, max_outer=1) #sLA.spsolve(M, self.fh[-1])
+            self.vh[-1], max_outer, e, r = self.do_newton_cycle(prob,self.vh[-1], self.fh[-1], nu1, nu2, level, n_v_cycles=1, max_outer=1) #sLA.spsolve(M, self.fh[-1])
             return self.vh[-1]
 
         for i in range(nu0):
-            self.vh[level] = self.do_newton_cycle(prob,self.vh[level], self.fh[level], nu1, nu2, level, max_inner, max_outer)
+            self.vh[level], max_outer, e, r = self.do_newton_cycle(prob,self.vh[level], self.fh[level], nu1, nu2, level, max_inner, max_outer)
 
         return self.vh[level]
