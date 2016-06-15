@@ -80,7 +80,7 @@ class Newton(MultigridBase):
     def do_newton_cycle(self, prob, v0, rhs0, nu1, nu2, level, n_v_cycles,max_outer=20, eps=1e-10):
         current_ndofs = int(math.sqrt(rhs0.shape[0]))		
         #approximate error using linear multigrid
-        mgrid = MyMultigrid(prob.ndofs,int(np.log2(prob.ndofs+1)))
+        mgrid = MyMultigrid(current_ndofs,int(np.log2(current_ndofs+1)))
     	mgrid.attach_transfer(LinearTransfer2D)
     	
         v = v0
@@ -111,7 +111,7 @@ class Newton(MultigridBase):
         return v
 
     def do_newton_fmg_cycle(self, prob, rhs, level, nu0, nu1, nu2, max_inner=1,max_outer=20):
-        self.fh[0] = rhs
+        self.fh[level] = rhs
         current_ndofs = int(math.sqrt(rhs.shape[0]))		
         mgrid = MyMultigrid(current_ndofs,int(np.log2(current_ndofs+1)))
         mgrid.attach_transfer(LinearTransfer2D)

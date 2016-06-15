@@ -35,14 +35,14 @@ def test_newton(problem,ndofs=4,eps=1e-8):
 
 
 
-    #nu1=1
-    #nu2=1
-    #n_v_cycles=5
-    #begin=time()
-    #x=newton.newton_mg(prob,nu1,nu2,n_v_cycles)
-    #duration=time()-begin
-    #error=linalg.norm(x-prob.u_exact)
-    #print fstring%(problem,"Newton-MG",error,duration)
+    nu1=1
+    nu2=1
+    n_v_cycles=5
+    begin=time()
+    x=newton.newton_mg(prob,nu1,nu2,n_v_cycles)
+    duration=time()-begin
+    error=linalg.norm(x-prob.u_exact)
+    print fstring%(problem,"Newton-MG",error,duration)
     #assert error < eps
 
     
@@ -62,7 +62,7 @@ def test_newton(problem,ndofs=4,eps=1e-8):
 if __name__ == "__main__":
     print "%-15s %-15s %-12s %-15s"%("Problem","Method","||e||","Time")
     print "---------------------------------------------------"
-    k=4
+    k=3
     ndofs=2**k -1
     test_newton("PseudoNonLinear", ndofs)
     test_newton("NonLinear", ndofs)
