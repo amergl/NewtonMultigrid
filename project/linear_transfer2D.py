@@ -30,8 +30,8 @@ class LinearTransfer2D(TransferBase):
         super(LinearTransfer2D, self).__init__(ndofs_fine, ndofs_coarse, *args, **kwargs)
 
         # pre-compute prolongation and restriction matrices
-        self.I_2htoh = self.__get_prolongation_matrix(ndofs_coarse, ndofs_fine)
-        self.I_hto2h = self.__get_restriction_matrix()
+        self.I_2htoh = sp.csc_matrix(self.__get_prolongation_matrix(ndofs_coarse, ndofs_fine))
+        self.I_hto2h = sp.csc_matrix(self.I_2htoh.T*0.25)
 
     @staticmethod
     def __get_prolongation_matrix(n_coarse, n_fine):
@@ -46,6 +46,7 @@ class LinearTransfer2D(TransferBase):
                 `ndofs_fine` x `ndofs_coarse`
         """
 
+<<<<<<< HEAD
         ndofs_coarse = n_coarse**2
         ndofs_fine = n_fine**2
 
@@ -63,6 +64,14 @@ class LinearTransfer2D(TransferBase):
         np.fill_diagonal(block2[2::2, :], 1.0 / 4.0)
 
         block2 = sp.csc_matrix(block2)
+=======
+        n_coarse = ndofs_coarse #int(math.sqrt(ndofs_coarse))
+        n_fine = ndofs_fine #int(math.sqrt(ndofs_fine))
+
+        # This is a workaround, since I am not aware of a suitable way to do
+        # this directly with sparse matrices.
+        P = np.zeros((ndofs_fine**2, ndofs_coarse**2))
+>>>>>>> 7e4d6cb679c4b06538df64003304fac7c1f6b098
 
         for line_block in range(n_fine):
             if (line_block % 2 == 1):
@@ -95,6 +104,7 @@ class LinearTransfer2D(TransferBase):
         """
 
         return (1./4 * self.I_2htoh.transpose()).tocsc()
+
 
     def restrict(self, u_coarse):
         """Routine to apply restriction
